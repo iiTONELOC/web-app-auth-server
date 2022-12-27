@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson;
-using BC = BCrypt.Net.BCrypt;
 using System.Text.Json.Serialization;
+using WebAppAuthenticationServer.Utils;
 using MongoDB.Bson.Serialization.Attributes;
 
 // using static WebAppAuthenticationServer.Utils.InputValidation;
@@ -23,9 +23,16 @@ public class CreateUserInfo : IUser
     public string? Password { get; set; }
 }
 
+public class LoginUserInfo
+{
+    public string? Username { get; set; }
+    public string? Password { get; set; }
+}
+
 public class User : IUser
 {
     private string? _password;
+    private string? _passSalt;
 
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
@@ -43,6 +50,16 @@ public class User : IUser
     public string? Password
     {
         get => _password;
-        set => _password = BC.HashPassword(value!);
+        set => _password = value.Contains("HASH$") ? value : SetPassword(value);
+    }
+
+    [JsonIgnore]
+    public string? PassSalt { get; set; }
+
+    private string SetPassword(string? password)
+    {
+        var passHash = PassHash.HashPassword(password!, out string salt);
+        PassSalt = salt;
+        return passHash;
     }
 }

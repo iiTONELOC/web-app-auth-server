@@ -7,7 +7,7 @@ namespace WebAppAuthenticationServer.Controllers;
 
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 [Produces("application/json")]
 public class UserController : ControllerBase
 {
@@ -22,8 +22,8 @@ public class UserController : ControllerBase
     public async Task<ActionResult<List<User>>> Get() =>
     await _userServices.GetAsync();
 
-    [HttpGet(Name = "GetUser")]
-    public async Task<ActionResult<User>> GetAsync([FromBody] string id)
+    [HttpGet("{id:length(24)}", Name = "GetUser")]
+    public async Task<ActionResult<User>> GetAsync(string id)
     {
         var user = await _userServices.GetAsync(id);
 
@@ -36,8 +36,8 @@ public class UserController : ControllerBase
     }
 
 
-    [HttpGet(Name = "GetUserByUsername")]
-    public async Task<ActionResult<User>> GetAsyncByUsername([FromBody] string username)
+    [HttpGet("{username}", Name = "GetUserByUsername")]
+    public async Task<ActionResult<User>> GetAsyncByUsername(string username)
     {
         var user = await _userServices.GetAsyncByUsername(username);
 
@@ -59,6 +59,8 @@ public class UserController : ControllerBase
 
         // create the response object
         var response = new ApiResponse<object> { };
+        // create the JWT service
+        var JWTService = new UserTokenService();
 
         // if there are no messages then we can create the user
         if (messages.Count == 0)
@@ -72,7 +74,11 @@ public class UserController : ControllerBase
 
             await _userServices.CreateAsync(_user);
 
-            response.Data = _user;
+            // the user was created successfully
+            // create a token for the user and return it
+            string token = JWTService.GenerateToken(_user.Username!, _user.Email!);
+
+            response.Data = token;
             response.StatusCode = 201;
         }
         else
@@ -105,8 +111,8 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete(Name = "RemoveUser")]
-    public async Task<IActionResult> RemoveAsync([FromBody] string id)
+    [HttpDelete("{id:length(24)}", Name = "RemoveUser")]
+    public async Task<IActionResult> RemoveAsync(string id)
     {
         var user = await _userServices.GetAsync(id);
 
@@ -119,4 +125,44 @@ public class UserController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPost]
+    [Route("login")]
+    public async Task<ApiResponse<_Message<string>>> LoginAsync([FromBody] LoginUserInfo user)
+    {
+        // create the response _Message<string>
+        var response = new ApiResponse<_Message<string>> { };
+        // create the JWT service
+        var JWTService = new UserTokenService();
+        // create the unauthorized message
+
+
+        // check if the user exists
+        var _user = await _userServices.GetAsyncByUsername(user.Username!);
+
+        // if the user doesn't exist or the password is incorrect
+        if (_user == null
+        || !PassHash.VerifyPassword(user.Password!, _user.Password!, _user.PassSalt!))
+        {
+            response.Data = null;
+            response.StatusCode = 401;
+            response.Error = new _Message<string>
+            {
+                Code = 401,
+                Message = "Invalid credentials"
+            };
+
+        }
+        else
+        {
+            // the user was validated successfully
+            string token = JWTService.GenerateToken(_user?.Username!, _user?.Email!);
+            response.Data = token;
+            response.StatusCode = 200;
+        }
+
+        Response.StatusCode = response.StatusCode;
+        return response;
+    }
+
 }

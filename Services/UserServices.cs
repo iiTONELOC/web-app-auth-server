@@ -49,9 +49,21 @@ public class UserServices
     await _users.DeleteOneAsync(user => user.Id == userIn.Id);
 
 
-    // user exists
-    public async Task<bool> UserExistsAsync(string id) =>
+    // user exists by id
+    public async Task<bool> UserExistsByIdAsync(string id) =>
     await _users.Find<User>(user => user.Id == id).AnyAsync();
+
+    // userExists by username and email
+    public async Task<bool> UserExistsAsync(string username, string email)
+    {
+        var userByEmail = await _users.Find<User>(user => user.Email == email).FirstOrDefaultAsync();
+        var userByUsername = await _users.Find<User>(user => user.Username == username).FirstOrDefaultAsync();
+
+        if (userByEmail == null && userByUsername == null)
+            return false;
+        return true;
+    }
+
 
     // user exists by username
     public async Task<bool> UserExistsAsyncByUsername(string username) =>
