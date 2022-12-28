@@ -6,11 +6,10 @@ public static class UserAuthService
 {
     private static readonly UserTokenService _userTokenService = new UserTokenService();
 
-    public static Task Authenticate(HttpContext _context, Func<Task> next, UserServices _userService)
+    public static Task Authenticate(
+        HttpContext _context, Func<Task> next, UserServices _userService)
     {
-        var key = _context.Request.Headers["Authorization"]
-             .ToString()
-             .Replace("Bearer ", "");
+        var key = GetToken(_context.Request.Headers["Authorization"].ToString());
 
         var requestPath = _context.Request.Path;
         var requestMethod = _context.Request.Method;
@@ -24,7 +23,7 @@ public static class UserAuthService
             // ensure valid applications are creating users or users are logging in to valid applications
             return next();
         }
-        if (requestPath.ToString() == "/api/users" && requestMethod.ToString() == "GET")
+        if (requestPath.ToString() == "/api/users/all" && requestMethod.ToString() == "GET")
         {
             // TODO: Implement application authentication to retrieve this data
             // users cannot view a list of all users
@@ -43,7 +42,8 @@ public static class UserAuthService
             var isValidToken = AuthenticateToken(key);
             // check if the user exists
             var isValidUser = AuthenticateUser(_userTokenService.GetUsernameFromToken(key),
-             _userTokenService.GetEmailFromToken(key), _userService);
+             _userTokenService.GetEmailFromToken(key), _userTokenService.GetIdFromToken(key),
+              _userService);
 
             // if the token data is bad or the user does not exist then return unauthorized
             if (!isValidUser.Result || !isValidToken)
@@ -57,12 +57,13 @@ public static class UserAuthService
         }
     }
 
-    private static async Task<bool> AuthenticateUser(string username, string email, UserServices userService)
+    private static async Task<bool> AuthenticateUser(
+        string username, string email, string id, UserServices userService)
     {
-        // check if the user exists
-        var isValidUser = await userService.UserExistsAsync(username, email);
+        // check if the user exists by validating the claims
+        var areValidClaims = await userService.ValidateUserClaimsAsync(username, email, id);
 
-        return isValidUser;
+        return areValidClaims;
     }
 
     private static bool AuthenticateToken(string token)
@@ -83,5 +84,10 @@ public static class UserAuthService
             Error = "Unauthorized"
         };
         return _context.Response.WriteAsJsonAsync(apiError);
+    }
+
+    public static string GetToken(string authHeader)
+    {
+        return authHeader.Replace("Bearer ", "");
     }
 }

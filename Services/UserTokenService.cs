@@ -11,7 +11,7 @@ public class UserTokenService
     private static readonly I_JWTService _jwtService = new JWTService(JWT_SECRET, JWT_SECURITY_ALGORITHM);
 
 
-    public string GenerateToken(string username, string email, int expiresInMinutes = 60)
+    public string GenerateToken(string username, string email, string id, int expiresInMinutes = 60)
     {
         var _tokenModel = new JWTContainerModel
         {
@@ -21,7 +21,8 @@ public class UserTokenService
             Claims = new Claim[]
             {
                 new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Email, email)
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.NameIdentifier, id)
             }
         };
 
@@ -53,5 +54,10 @@ public class UserTokenService
     public string GetEmailFromToken(string token)
     {
         return GetTokenClaims(token)?.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value!;
+    }
+
+    public string GetIdFromToken(string token)
+    {
+        return GetTokenClaims(token)?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value!;
     }
 }

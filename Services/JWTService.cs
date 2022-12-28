@@ -79,9 +79,11 @@ public class JWTService : I_JWTService
             .ValidateToken(token, tokenValidationParameters, out SecurityToken validatedToken);
             return tokenValid.Claims;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            throw ex;
+            // there was an error accessing the claims, no need to break the application,
+            // just return an empty list, and the caller can decide what to do
+            return new List<Claim>();
         }
     }
 

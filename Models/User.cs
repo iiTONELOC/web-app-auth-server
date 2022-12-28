@@ -15,13 +15,14 @@ public interface IUser
     string? Password { get; set; }
 }
 
-public class CreateUserInfo : IUser
+public class NonHashedUserInfo : IUser
 {
     public string? Id { get; set; }
     public string? Username { get; set; }
     public string? Email { get; set; }
     public string? Password { get; set; }
 }
+
 
 public class LoginUserInfo
 {
@@ -32,11 +33,9 @@ public class LoginUserInfo
 public class User : IUser
 {
     private string? _password;
-    private string? _passSalt;
-
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    [JsonIgnore]
+    [JsonPropertyName("_id")]
     public string? Id { get; set; }
 
     [JsonPropertyName("username")]
