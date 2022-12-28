@@ -11,8 +11,7 @@ The Web App Authentication Server is written in C#, securely authenticates users
 - HTTPS by default
 - **_MongoDB_** for data persistence.
 - Passwords are not stored in plain text.
-- Database Ids are not exposed to any client.
-- All fields are validated prior to model creation.
+- All fields are validated prior to model mutation.
 - Acts as a SSO for your family of connected applications.
 - **_JSON Web Tokens_** are used for claim and session management.
 
@@ -68,40 +67,38 @@ _`To build a local copy`_:
 
   - [_DotNET Installation - macOS_](https://learn.microsoft.com/en-us/dotnet/core/install/macos)
 
-3. **Create the development app settings**:
+3. **Create your environment variables**:
 
    ```bash
    cd web-app-auth-server
 
    # Create the empty JSON file
    # Windows Powershell
-   New-Item appsettings.Development.json -ItemType file
+   New-Item .env -ItemType file
 
    # Mac or Linux
-   touch appsettings.Development.json
+   touch .env
    ```
 
 4. **Add your desired settings**
 
-   ```json
-   {
-     <!-- NOT REQUIRED -->
-     "Logging": {
-       "LogLevel": {
-         "Default": "Information",
-         "Microsoft.AspNetCore": "Warning"
-       }
-     },
+   Copy the below settings to the newly created .env file and
+   Replace `<Whatever>` with your information
 
-     <!-- REQUIRED -->
-     "AllowedHosts": "<Allowed Hosts Go Here>",
-     "WebAppDatabase": {
-       "ConnectionString": "mongodb://localhost:27017",
-       "DatabaseName": "<Enter DB NAME>",
-       "WebAppCollectonName": "<Web App Collection Name>",
-       "UserCollectionName": "<User Collection Name>"
-     }
-   }
+   ```env
+   ConnectionString = <MongoConnectionString>
+
+   # pick existing or make up your own
+   DatabaseName = <DBName>
+
+   # pick existing or make up your own
+   WebAppCollectionName = <WebAppCollectionName>
+
+   # pick existing or make up your own
+   UserCollectionName = <UsersCollectionName>
+
+   AllowedHosts = <List of Hosts>
+   JWTUserKey1 = <256-Bit URL-Safe Secret>
    ```
 
 5. **Configure Mongo using Mongosh**:
@@ -143,6 +140,8 @@ The Web Authentication Sever acts as a central datastore for your connected appl
 
 User JSON data must adhere to the following specifications to interact with the API :
 
+### Data Requirements
+
 ```json
 // UserModel Schema
 {
@@ -169,7 +168,7 @@ User JSON data must adhere to the following specifications to interact with the 
 - Must have one lowercase letter
 - Must have a number
 - Must have a special character:
-  `` !@#$%^&*)}[|/.+=}(\]\?_~`\-;:  ``
+  `` !@#$%^&*)}[|/.+=}(]?_~`-;: ``
 
 `Email Addresses` must meet the following conditions:
 

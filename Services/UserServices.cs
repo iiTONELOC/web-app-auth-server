@@ -49,9 +49,25 @@ public class UserServices
     await _users.DeleteOneAsync(user => user.Id == userIn.Id);
 
 
-    // user exists
-    public async Task<bool> UserExistsAsync(string id) =>
+    // user exists by id
+    public async Task<bool> UserExistsByIdAsync(string id) =>
     await _users.Find<User>(user => user.Id == id).AnyAsync();
+
+    // Verifies all the
+    public async Task<bool> ValidateUserClaimsAsync(string username, string email, string id)
+    {
+        var userById = await _users.Find<User>(user => user.Id == id).FirstOrDefaultAsync();
+        var userByEmail = await _users.Find<User>(user => user.Email == email).FirstOrDefaultAsync();
+        var userByUsername = await _users.Find<User>(user => user.Username == username).FirstOrDefaultAsync();
+
+        // if any of the users are null, return false
+        if (userByEmail == null || userByUsername == null || userById == null)
+            return false;
+        return true;
+    }
+
+
+    // Used by the UserModelFieldValidation class to ensure Uniqueness
 
     // user exists by username
     public async Task<bool> UserExistsAsyncByUsername(string username) =>
