@@ -22,13 +22,18 @@ public static class DotEnv
                 continue;
 
             // split the line on the = sign
+            // but only on the first occurrence
             var parts = line.Split(
                 '=',
+                2,
                 StringSplitOptions.RemoveEmptyEntries);
 
             // malformed line
             if (parts.Length != 2)
+            {
                 continue;
+            }
+
 
             // get our key value pair
             var key = parts[0].Trim();

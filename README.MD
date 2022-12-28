@@ -4,7 +4,7 @@
 
 ---
 
-The Web App Authentication Server is written in C#, securely authenticates users for all your applications.
+The Web App Authentication Server is written in C# and securely authenticates users for all your applications.
 
 ## Features
 
@@ -92,13 +92,12 @@ _`To build a local copy`_:
    DatabaseName = <DBName>
 
    # pick existing or make up your own
-   WebAppCollectionName = <WebAppCollectionName>
-
-   # pick existing or make up your own
    UserCollectionName = <UsersCollectionName>
 
    AllowedHosts = <List of Hosts>
-   JWTUserKey1 = <256-Bit URL-Safe Secret>
+   JWTUserKey1 = <URL-Safe Secret>
+   MasterKey = <255-bit URL-Safe Secret>
+   ApprovedKeyList = <Comma separated list of App Access Keys>
    ```
 
 5. **Configure Mongo using Mongosh**:
@@ -111,8 +110,6 @@ _`To build a local copy`_:
    #create a database using the DatabaseName from the app settings
    use <DatabaseName>
 
-   #create the WebApp and User Collections using the names from the app settings
-   db.createCollection('<WebCollectionName>')
    db.createCollection('<UserCollectionName>')
 
    #exit mongosh

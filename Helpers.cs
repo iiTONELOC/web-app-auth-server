@@ -37,18 +37,16 @@ public static class ProgramConfig
         var connectionString = GetEnv("ConnectionString");
         var databaseName = GetEnv("DatabaseName");
         var userCollectionName = GetEnv("UserCollectionName");
-        var webApplicationsCollectionName = GetEnv("WebAppCollectionName");
 
         // Configure the database settings
         if (connectionString != null && databaseName != null
-            && userCollectionName != null && webApplicationsCollectionName != null)
+            && userCollectionName != null)
         {
             builder?.Services.Configure<WebAppDatabaseSettings>(options =>
             {
                 options.ConnectionString = connectionString.ToString();
                 options.DatabaseName = databaseName.ToString();
                 options.UserCollectionName = userCollectionName.ToString();
-                options.WebApplicationsCollectionName = webApplicationsCollectionName.ToString();
             });
         }
         // If the environment variables do no exist, we fallback to appsettings.json
@@ -113,13 +111,15 @@ public static class ProgramBuilder
         // enable cors
         app.UseCors();
 
-        // authenticate the user
+        // authenticate access to the API
+        app.Use((context, next) => WebAppAuthService.AuthenticateApplication(context, next));
+
+        // authenticate the user making the request
         app.Use((context, next) => UserAuthService.Authenticate(
             context, next, app.Services.GetRequiredService<UserServices>()));
 
         // enable routing via controllers
         app.MapControllers();
-
 
         return app;
     }

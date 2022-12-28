@@ -14,46 +14,45 @@ public static class UserAuthService
         var requestPath = _context.Request.Path;
         var requestMethod = _context.Request.Method;
 
-        // for now we will allow it to pass through
-        if (requestPath.ToString() == "/api/users" && requestMethod.ToString() == "POST" ||
-            requestPath.ToString() == "/api/users/login" && requestMethod.ToString() == "POST"
-        )
+        if (requestPath.ToString().Contains("/api/users") && requestPath.ToString() != "/api/users/all")
         {
-            // TODO: Implement application authentication so we can 
-            // ensure valid applications are creating users or users are logging in to valid applications
-            return next();
-        }
-        if (requestPath.ToString() == "/api/users/all" && requestMethod.ToString() == "GET")
-        {
-            // TODO: Implement application authentication to retrieve this data
-            // users cannot view a list of all users
-            // return unauthorized
-            return HandleUnauthorizedRequest(_context);
-        }
-
-        // everything else requires authentication
-        if (string.IsNullOrEmpty(key))
-        {
-            return HandleUnauthorizedRequest(_context);
-        }
-        else
-        {
-            // check if the token is valid
-            var isValidToken = AuthenticateToken(key);
-            // check if the user exists
-            var isValidUser = AuthenticateUser(_userTokenService.GetUsernameFromToken(key),
-             _userTokenService.GetEmailFromToken(key), _userTokenService.GetIdFromToken(key),
-              _userService);
-
-            // if the token data is bad or the user does not exist then return unauthorized
-            if (!isValidUser.Result || !isValidToken)
+            // for now we will allow it to pass through
+            if (requestPath.ToString() == "/api/users" && requestMethod.ToString() == "POST" ||
+                requestPath.ToString() == "/api/users/login" && requestMethod.ToString() == "POST"
+            )
+            {
+                // TODO: Implement application authentication so we can 
+                // ensure valid applications are creating users or users are logging in to valid applications
+                return next();
+            }
+            // everything else requires authentication
+            if (string.IsNullOrEmpty(key))
             {
                 return HandleUnauthorizedRequest(_context);
             }
             else
             {
-                return next();
+                // check if the token is valid
+                var isValidToken = AuthenticateToken(key);
+                // check if the user exists
+                var isValidUser = AuthenticateUser(_userTokenService.GetUsernameFromToken(key),
+                 _userTokenService.GetEmailFromToken(key), _userTokenService.GetIdFromToken(key),
+                  _userService);
+
+                // if the token data is bad or the user does not exist then return unauthorized
+                if (!isValidUser.Result || !isValidToken)
+                {
+                    return HandleUnauthorizedRequest(_context);
+                }
+                else
+                {
+                    return next();
+                }
             }
+        }
+        else
+        {
+            return next();
         }
     }
 
