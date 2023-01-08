@@ -1,10 +1,10 @@
-name: Build and deploy .NET Core application to Web App CloudyWeatherAPI
+name: Build and deploy .NET Core application to Web App WebAppAuthenticationServer
 on:
   push:
     branches:
     - main
 env:
-  AZURE_WEBAPP_NAME: CloudyWeatherAPI
+  AZURE_WEBAPP_NAME: WebAppAuthenticationServer
   AZURE_WEBAPP_PACKAGE_PATH: .\published
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 6.0.x
@@ -44,5 +44,5 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.CloudyWeatherAPI_432E }}
+        publish-profile: ${{ secrets.WebAppAuthenticationServer_0611 }}
         package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
